@@ -12,26 +12,25 @@ public class Main {
         String line2 = bf.readLine();
 
 
-        Map<String, Character> dictionary = new HashMap<>();
+        Map<Character, String> dictionary = new TreeMap<>();
         StringBuilder nextCode = new StringBuilder();
         char nextChar = line2.charAt(0);
         for (int i = 1; i < line2.length(); i++) {
             if (Character.isAlphabetic(line2.charAt(i))){
-                dictionary.put(nextCode.toString(), nextChar);
+                dictionary.put(nextChar, nextCode.toString());
                 nextChar = line2.charAt(i);
                 nextCode.setLength(0);
             }else{
                 nextCode.append(line2.charAt(i));
             }
         }
-        dictionary.put(nextCode.toString(), nextChar);
+        dictionary.put(nextChar, nextCode.toString());
 
         List<String> result = new ArrayList<>();
         decypher(line1, dictionary, 0, new StringBuilder(), result);
 
         System.out.println(result.size());
         if (!result.isEmpty()){
-            result.sort(String::compareTo);
             for (String msg: result){
                 System.out.println(msg);
             }
@@ -39,16 +38,17 @@ public class Main {
     }
 
     private static void decypher(String encrypted,
-                                 Map<String, Character> dictionary,
+                                 Map<Character, String> dictionary,
                                  int start,
                                  StringBuilder current, List<String> result) {
         if (start == encrypted.length()){
             result.add(current.toString());
             return;
         }
-        for (String code: dictionary.keySet()){
+        for (Map.Entry<Character, String> entry: dictionary.entrySet()){
+            String code = entry.getValue();
             if (encrypted.startsWith(code, start)){
-                current.append(dictionary.get(code));
+                current.append(entry.getKey());
                 decypher(encrypted, dictionary, start + code.length(), current, result);
                 current.setLength(current.length() - 1);
             }
