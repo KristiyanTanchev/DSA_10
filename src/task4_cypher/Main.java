@@ -10,13 +10,13 @@ public class Main {
         BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
         String line1 = bf.readLine();
         String line2 = bf.readLine();
-
+        boolean[] dead = new boolean[line1.length() + 1];
 
         Map<Character, String> dictionary = new TreeMap<>();
         StringBuilder nextCode = new StringBuilder();
         char nextChar = line2.charAt(0);
         for (int i = 1; i < line2.length(); i++) {
-            if (Character.isAlphabetic(line2.charAt(i))){
+            if (Character.isUpperCase(line2.charAt(i))){
                 dictionary.put(nextChar, nextCode.toString());
                 nextChar = line2.charAt(i);
                 nextCode.setLength(0);
@@ -25,33 +25,51 @@ public class Main {
             }
         }
         dictionary.put(nextChar, nextCode.toString());
+        List<Map.Entry<Character,String>> entries = new ArrayList<>(dictionary.entrySet());
 
         List<String> result = new ArrayList<>();
-        decypher(line1, dictionary, 0, new StringBuilder(), result);
+        decipher(line1, entries, 0, new StringBuilder(), result, dead);
 
         System.out.println(result.size());
-        if (!result.isEmpty()){
-            for (String msg: result){
-                System.out.println(msg);
-            }
+        for (String msg: result){
+            System.out.println(msg);
         }
     }
 
-    private static void decypher(String encrypted,
-                                 Map<Character, String> dictionary,
+    private static void decipher(String encrypted,
+                                 List<Map.Entry<Character, String>> entries,
                                  int start,
-                                 StringBuilder current, List<String> result) {
-        if (start == encrypted.length()){
+                                 StringBuilder current,
+                                 List<String> result,
+                                 boolean[] dead) {
+        if (dead[start]){
+            return;
+        }
+        final int n = encrypted.length();
+        if (start == n){
             result.add(current.toString());
             return;
         }
-        for (Map.Entry<Character, String> entry: dictionary.entrySet()){
+        final char first = encrypted.charAt(start);
+
+        int resultsSizeBefore = result.size();
+
+        for (Map.Entry<Character, String> entry: entries){
             String code = entry.getValue();
+            if (code.isEmpty() || first != code.charAt(0)){
+                continue;
+            }
+            if (start + code.length() > n){
+                continue;
+            }
             if (encrypted.startsWith(code, start)){
                 current.append(entry.getKey());
-                decypher(encrypted, dictionary, start + code.length(), current, result);
+                decipher(encrypted, entries, start + code.length(), current, result, dead);
                 current.setLength(current.length() - 1);
             }
+        }
+        if (result.size() == resultsSizeBefore){
+            dead[start] = true;
         }
     }
 }
